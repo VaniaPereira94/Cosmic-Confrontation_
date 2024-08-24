@@ -63,8 +63,6 @@ public class ThirdPersonMovement : CharacterBase
 
     bool keepMomentum;
 
-    private Animator animator;
-
     private bool _isPicking = false;
 
     public bool IsPicking
@@ -119,7 +117,7 @@ public class ThirdPersonMovement : CharacterBase
         _healthManager = healthObject.GetComponent<HealthManager>();
         HealthManager = _healthManager;
 
-        animator = GetComponent<Animator>();
+        _animator = GetComponent<Animator>();
 
         gameManager = GameManager.Instance;
     }
@@ -378,19 +376,10 @@ public class ThirdPersonMovement : CharacterBase
         return Mathf.Round(value * mult) / mult;
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider collision)
     {
-        CheckMedicineCollision(other);
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        Utils.CheckIfIsDead(collision, _healthManager, Utils.Constants.LAZER_BULLET_ENEMY, ref _isDead);
-
-        if (_isDead)
-        {
-            SetDeathCollider(true);
-        }
+        //Utils.CheckIfIsDead(collision, _healthManager, Utils.Constants.LAZER_BULLET_ENEMY, ref _isDead);
+        CheckMedicineCollision(collision);
     }
 
     private void OnTriggerStay(Collider other)
@@ -461,11 +450,5 @@ public class ThirdPersonMovement : CharacterBase
         yield return new WaitForSeconds(2f);
         _isPicking = false;
         _isGrabing = false;
-    }
-
-    public void SetDeathCollider(bool activate)
-    {
-        GameObject kachujinObj = GameObject.Find("Kachujin");
-        kachujinObj.GetComponent<CapsuleCollider>().enabled = activate;
     }
 }

@@ -10,6 +10,7 @@ public class MainMenuManager : MonoBehaviour
     public void PlayGame()
     {
         SceneManager.LoadScene("BeachAndForest");
+
     }
 
     public void OpenControls()

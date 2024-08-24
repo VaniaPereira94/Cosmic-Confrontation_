@@ -2,14 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using static Utils;
 
 public class PuzzleManager : MonoBehaviour
 {
     /* ATRIBUTOS */
+
+    [SerializeField] private int[] pieceOrder = { 6, 9, 8, 7, 2, 4, 5, 3, 1 };
 
     [SerializeField] private List<Transform> _wallPoints;
     [SerializeField] private List<PuzzlePiece> _pieces;
@@ -32,37 +32,18 @@ public class PuzzleManager : MonoBehaviour
     [SerializeField] private GameObject _walkToPuzzlePoint;
     [SerializeField] private GameObject _lookToPuzzlePoint;
 
-    [SerializeField] private Animator animator;
-
     private bool _walkStarted = false;
     private bool _lookStarted = false;
 
-    private bool _isMovingFirstPiece = false;
-    private bool _isMovingSecondPiece = false;
-
     [SerializeField] private AudioSource _pieceDragAudio;
-
-    [SerializeField] private BoardAI _boardAI;
 
 
     /* PROPRIEDADES */
-
-    public List<PuzzlePiece> Pieces
-    {
-        get { return _pieces; }
-        set { _pieces = value; }
-    }
 
     public bool IsSolving
     {
         get { return _isSolving; }
         set { _isSolving = value; }
-    }
-
-    public BoardAI BoardAI
-    {
-        get { return _boardAI; }
-        set { _boardAI = value; }
     }
 
 
@@ -92,12 +73,8 @@ public class PuzzleManager : MonoBehaviour
         }
     }
 
-    public void ShufflePuzzle()
+    private void ShufflePuzzle()
     {
-        int[] pieceOrder = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-
-        ShuffleNumbers(pieceOrder);
-
         _pieces = _pieces.OrderBy(piece => Array.IndexOf(pieceOrder, piece.position)).ToList();
 
         for (int i = 0; i < _pieces.Count; i++)
@@ -107,25 +84,10 @@ public class PuzzleManager : MonoBehaviour
         }
     }
 
-    private void ShuffleNumbers(int[] array)
-    {
-        System.Random random = new System.Random();
-
-        for (int i = array.Length - 1; i > 0; i--)
-        {
-            int j = random.Next(0, i + 1);
-
-            // troca os elementos de i e j
-            int temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-        }
-    }
-
     public void DoPlay()
     {
-        // se uma tecla for pressionada e não existe nenhuma peça a mover-se
-        if (Input.anyKeyDown && !_isMovingFirstPiece && !_isMovingSecondPiece)
+        // se uma tecla for pressionada
+        if (Input.anyKeyDown)
         {
             // obtém o número da tecla
             int inputtedNumber = GetNumericKeyValue();
@@ -138,6 +100,7 @@ public class PuzzleManager : MonoBehaviour
                 {
                     _firstPiece = ChoosePiece(inputtedNumber);
                     StartCoroutine(MoveToFront(_firstPiece, _firstPieceToFrontDistance));
+                    return;
                 }
                 else
                 {
@@ -146,41 +109,6 @@ public class PuzzleManager : MonoBehaviour
                 }
             }
         }
-    }
-
-    public async Task MoveFirstPiece(int chosenNumber)
-    {
-        _firstPiece = ChoosePiece(chosenNumber);
-        await MoveToFront2(_firstPiece, _firstPieceToFrontDistance);
-    }
-
-    public async Task MoveSecondPiece(int chosenNumber)
-    {
-        _secondPiece = ChoosePiece(chosenNumber);
-
-        _isMovingSecondPiece = true;
-
-        Vector3 endStartPosition = new Vector3(_secondPiece.piece.transform.position.x, _secondPiece.piece.transform.position.y, _secondPiece.piece.transform.position.z);
-
-        if (IsSamePiece())
-        {
-            await MoveToBack2(_firstPiece, _firstPieceToFrontDistance);
-        }
-        else
-        {
-            await MoveToFront2(_secondPiece, _secondPieceToFrontDistance);
-            await MoveSecondToFirstPiece2();
-            await MoveToBack2(_secondPiece, _secondPieceToFrontDistance);
-            await MoveFirstToSecondPiece2(endStartPosition);
-
-            int firstIndexOfList = _pieces.IndexOf(_firstPiece);
-            int secondIndeOfList = _pieces.IndexOf(_secondPiece);
-            SwapPieceInList(firstIndexOfList, secondIndeOfList);
-        }
-
-        ResetValues();
-
-        _isMovingSecondPiece = false;
     }
 
     /*
@@ -203,21 +131,9 @@ public class PuzzleManager : MonoBehaviour
         }
     }
 
-    public bool CheckValidPlay(int inputtedNumber)
+    private bool CheckValidPlay(int inputtedNumber)
     {
         if (inputtedNumber >= 0)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    public bool IsSamePiece()
-    {
-        if (_firstPiece == _secondPiece)
         {
             return true;
         }
@@ -243,29 +159,19 @@ public class PuzzleManager : MonoBehaviour
 
     private IEnumerator MoveSecondPieceThenSwap()
     {
-        _isMovingSecondPiece = true;
-
         Vector3 endStartPosition = new Vector3(_secondPiece.piece.transform.position.x, _secondPiece.piece.transform.position.y, _secondPiece.piece.transform.position.z);
 
-        if (IsSamePiece())
-        {
-            yield return StartCoroutine(MoveToBack(_firstPiece, _firstPieceToFrontDistance));
-        }
-        else
-        {
-            yield return StartCoroutine(MoveToFront(_secondPiece, _secondPieceToFrontDistance));
-            yield return StartCoroutine(MoveSecondToFirstPiece());
-            yield return StartCoroutine(MoveToBack(_secondPiece, _secondPieceToFrontDistance));
-            yield return StartCoroutine(MoveFirstToSecondPiece(endStartPosition));
+        yield return StartCoroutine(MoveToFront(_secondPiece, _secondPieceToFrontDistance));
 
-            int firstIndexOfList = _pieces.IndexOf(_firstPiece);
-            int secondIndeOfList = _pieces.IndexOf(_secondPiece);
-            SwapPieceInList(firstIndexOfList, secondIndeOfList);
-        }
+        yield return StartCoroutine(MoveSecondToFirstPiece());
+        yield return StartCoroutine(MoveToBack(_secondPiece, _secondPieceToFrontDistance));
+        yield return StartCoroutine(MoveFirstToSecondPiece(endStartPosition));
+
+        int firstIndexOfList = _pieces.IndexOf(_firstPiece);
+        int secondIndeOfList = _pieces.IndexOf(_secondPiece);
+        SwapPieceInList(firstIndexOfList, secondIndeOfList);
 
         ResetValues();
-
-        _isMovingSecondPiece = false;
     }
 
     private void SwapPieceInList(int firstIndexOfList, int secondIndeOfList)
@@ -280,10 +186,8 @@ public class PuzzleManager : MonoBehaviour
         _pieces[listIndex].piece.transform.localPosition = wallPosition;
     }
 
-    private IEnumerator MoveToFront(PuzzlePiece currentPiece, float moveUntil)
+    IEnumerator MoveToFront(PuzzlePiece currentPiece, float moveUntil)
     {
-        _isMovingFirstPiece = true;
-
         _pieceDragAudio.Play();
 
         float startTime = Time.time;
@@ -304,39 +208,10 @@ public class PuzzleManager : MonoBehaviour
 
         currentPiece.piece.transform.position = endPosition;
 
-        _isMovingFirstPiece = false;
-
         yield return null;
     }
 
-    private async Task MoveToFront2(PuzzlePiece currentPiece, float moveUntil)
-    {
-        _isMovingFirstPiece = true;
-
-        _pieceDragAudio.Play();
-
-        float startTime = Time.time;
-        float elapsedTime = 0f;
-
-        Vector3 startPosition = currentPiece.piece.transform.position;
-        Vector3 endPosition = startPosition - Vector3.forward * moveUntil;
-
-        while (elapsedTime < _moveDuration)
-        {
-            elapsedTime = Time.time - startTime;
-            float t = Mathf.Clamp01(elapsedTime / _moveDuration);
-
-            currentPiece.piece.transform.position = Vector3.Lerp(startPosition, endPosition, t);
-
-            await Task.Yield();
-        }
-
-        currentPiece.piece.transform.position = endPosition;
-
-        _isMovingFirstPiece = false;
-    }
-
-    private IEnumerator MoveToBack(PuzzlePiece currentPiece, float moveUntil)
+    IEnumerator MoveToBack(PuzzlePiece currentPiece, float moveUntil)
     {
         _pieceDragAudio.Play();
 
@@ -359,35 +234,12 @@ public class PuzzleManager : MonoBehaviour
         currentPiece.piece.transform.position = endPosition;
 
         yield return null;
-    }
-
-    private async Task MoveToBack2(PuzzlePiece currentPiece, float moveUntil)
-    {
-        _pieceDragAudio.Play();
-
-        float startTime = Time.time;
-        float elapsedTime = 0f;
-
-        Vector3 startPosition = currentPiece.piece.transform.position;
-        Vector3 endPosition = startPosition - Vector3.back * moveUntil;
-
-        while (elapsedTime < _moveDuration)
-        {
-            elapsedTime = Time.time - startTime;
-            float t = Mathf.Clamp01(elapsedTime / _moveDuration);
-
-            currentPiece.piece.transform.position = Vector3.Lerp(startPosition, endPosition, t);
-
-            await Task.Yield();
-        }
-
-        currentPiece.piece.transform.position = endPosition;
     }
 
     /*
      * Mover a 2º peça até à 1º peça, mantendo o eixo z da 2º peça.
      */
-    private IEnumerator MoveSecondToFirstPiece()
+    IEnumerator MoveSecondToFirstPiece()
     {
         _pieceDragAudio.Play();
 
@@ -414,36 +266,9 @@ public class PuzzleManager : MonoBehaviour
     }
 
     /*
-     * Mover a 2º peça até à 1º peça, mantendo o eixo z da 2º peça.
-     */
-    private async Task MoveSecondToFirstPiece2()
-    {
-        _pieceDragAudio.Play();
-
-        float startTime = Time.time;
-        float elapsedTime = 0f;
-
-        Vector3 startPosition = _secondPiece.piece.transform.position;
-        Vector3 endPosition = new Vector3(_firstPiece.piece.transform.position.x, _firstPiece.piece.transform.position.y, _secondPiece.piece.transform.position.z);
-
-        while (elapsedTime < _moveDuration)
-        {
-            elapsedTime = Time.time - startTime;
-            float t = Mathf.Clamp01(elapsedTime / _moveDuration);
-
-            _secondPiece.piece.transform.position = Vector3.Lerp(startPosition, endPosition, t);
-
-            await Task.Yield();
-        }
-
-        // garante que a 1º peça fique alinhada na 2º peça
-        _secondPiece.piece.transform.position = endPosition;
-    }
-
-    /*
     * Mover a 1º peça até à 2º peça, mantendo o eixo z da 1º peça.
     */
-    private IEnumerator MoveFirstToSecondPiece(Vector3 endPosition)
+    IEnumerator MoveFirstToSecondPiece(Vector3 endPosition)
     {
         _pieceDragAudio.Play();
 
@@ -466,32 +291,6 @@ public class PuzzleManager : MonoBehaviour
         _firstPiece.piece.transform.position = endPosition;
 
         yield return null;
-    }
-
-    /*
-    * Mover a 1º peça até à 2º peça, mantendo o eixo z da 1º peça.
-    */
-    private async Task MoveFirstToSecondPiece2(Vector3 endPosition)
-    {
-        _pieceDragAudio.Play();
-
-        float startTime = Time.time;
-        float elapsedTime = 0f;
-
-        Vector3 startPosition = _firstPiece.piece.transform.position;
-
-        while (elapsedTime < _moveDuration)
-        {
-            elapsedTime = Time.time - startTime;
-            float t = Mathf.Clamp01(elapsedTime / _moveDuration);
-
-            _firstPiece.piece.transform.position = Vector3.Lerp(startPosition, endPosition, t);
-
-            await Task.Yield();
-        }
-
-        // garante que a 1º peça fique alinhada na 2º peça
-        _firstPiece.piece.transform.position = endPosition;
     }
 
     /*
@@ -519,24 +318,12 @@ public class PuzzleManager : MonoBehaviour
         return isSolved;
     }
 
-    public void BeforeSolvePuzzle(GameObject playerCamera)
+    public void BeforeSolvePuzzle(GameObject playerCamera, ThirdPersonMovement playerScript)
     {
         ThirdPersonCam thirdPersonCamera = playerCamera.GetComponent<ThirdPersonCam>();
         thirdPersonCamera.SwitchCameraStyle(ThirdPersonCam.CameraStyle.FocusOnPuzzle);
 
-        GameObject playerPrefab = GameObject.FindGameObjectWithTag("PlayerPrefab");
-        PlayerAnimations playerAnimations = playerPrefab.GetComponent<PlayerAnimations>();
-        playerAnimations.FreezeAllAnimations = true;
-        playerAnimations.StopAllAnimations();
-
         _walkStarted = true;
-
-        // executar o código se for a IA a jogar (apenas nas respetivas cenas)
-        if (SceneManager.GetActiveScene().name == "SolvePuzzleAI_Train" ||
-            SceneManager.GetActiveScene().name == "SolvePuzzleAI_Play")
-        {
-            _boardAI.StartGame();
-        }
     }
 
     public void AfterSolvePuzzle(GameObject playerCamera, ThirdPersonMovement playerScript)
@@ -554,9 +341,6 @@ public class PuzzleManager : MonoBehaviour
         GameObject playerPrefab = GameObject.FindGameObjectWithTag("PlayerPrefab");
         PlayerAnimations playerAnimations = playerPrefab.GetComponent<PlayerAnimations>();
         playerAnimations.FreezeAllAnimations = false;
-        playerAnimations.StopAllAnimations();
-
-        animator.SetTrigger("isMoving");
 
         Destroy(this);
     }
@@ -569,14 +353,14 @@ public class PuzzleManager : MonoBehaviour
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         GameObject playerPrefab = GameObject.FindGameObjectWithTag("PlayerPrefab");
 
-        // animação de andar
+        PlayerAnimations playerAnimations = playerPrefab.GetComponent<PlayerAnimations>();
+        playerAnimations.FreezeAllAnimations = true;
         playerPrefab.GetComponent<Animator>().SetBool(Animations.WALKING, true);
 
         // calcula a direção para o ponto de destino
         Vector3 direction = _walkToPuzzlePoint.transform.position - playerPrefab.transform.position;
         direction.Normalize();
 
-        // muda a rotação
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0f, direction.z));
         playerPrefab.transform.rotation = lookRotation;
 

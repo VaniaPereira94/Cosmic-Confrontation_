@@ -26,16 +26,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float _actionButtonsVisibilityDistance = 20f;
     [SerializeField] private float _actionButtonsClickDistance = 2f;
 
-    [SerializeField] private Canvas _mainCanvas;
+    [SerializeField] private Canvas _canvas;
 
     [SerializeField] private AudioSource _backgroundAaudioSource;
     [SerializeField] private AudioSource _treasureChestAudioSource;
-    private AudioSource _currentActionDialogue;
-    private AudioSource _currentGoalDialogue;
 
     private bool _isChangingPositon = false;
-    private Vector3 _positionToChange;
-    private Vector3 _rotationToChange;
+    private Vector3 positionToChange;
+    private Vector3 rotationToChange;
 
     [SerializeField] public GameObject _playerCameraObject;
 
@@ -45,17 +43,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _puzzleManagerObject;
     private PuzzleManager _puzzleManagerScript;
 
-    [SerializeField] private GameObject _currentActionPanel;
-    [SerializeField] private TextMeshProUGUI _currentActionTextMeshPro;
-
     [SerializeField] private GameObject _currentGoalPanel;
     [SerializeField] private TextMeshProUGUI _currentGoalTextMeshPro;
 
+    [SerializeField] private GameObject _currentActionPanel;
+    [SerializeField] private TextMeshProUGUI _currentActionTextMeshPro;
+
+    private AudioSource _currentActionDialogue;
+
     [SerializeField] private GameObject _starship;
 
-    [SerializeField] private GameObject _colliderInFrontOfCampCutscene;
-
-    [SerializeField] private GameObject _orb;
     private GameObject _targetToLook;
     private bool _isLookingToObject;
 
@@ -97,28 +94,10 @@ public class GameManager : MonoBehaviour
         set { _currentActionDialogue = value; }
     }
 
-    public AudioSource CurrentGoalDialogue
-    {
-        get { return _currentGoalDialogue; }
-        set { _currentGoalDialogue = value; }
-    }
-
     public Vector3 LastCheckPointPos
     {
         get { return _lastCheckPointPos; }
         set { _lastCheckPointPos = value; }
-    }
-
-    public GameObject CurrentActionPanel
-    {
-        get { return _currentActionPanel; }
-        set { _currentActionPanel = value; }
-    }
-
-    public GameObject CurrentGoalPanel
-    {
-        get { return _currentGoalPanel; }
-        set { _currentGoalPanel = value; }
     }
 
 
@@ -129,11 +108,6 @@ public class GameManager : MonoBehaviour
     */
     private void Awake()
     {
-        if (SceneManager.GetActiveScene().name == "CaveAndPyramid")
-        {
-            RenderSettings.ambientIntensity = 0.3f;
-        }
-
         if (_instance == null)
         {
             _instance = this;
@@ -153,7 +127,7 @@ public class GameManager : MonoBehaviour
         HideCurrentActionLabel();
         HideAllActionButtons();
 
-        InvokeRepeating(nameof(ShowAndHideGoalLoop), 4f, 40f);
+        InvokeRepeating(nameof(ShowAndHideGoalLoop), 4f, 35f);
 
         _playerScript = _player.GetComponent<ThirdPersonMovement>();
 
@@ -186,17 +160,6 @@ public class GameManager : MonoBehaviour
         // bloqueia outras ações quando está a resolver o puzzle
         if (_puzzleManagerScript != null)
         {
-            // executar o código se for a IA a jogar (nas respetivas cenas)
-            if (SceneManager.GetActiveScene().name == "SolvePuzzleAI_Train" ||
-                SceneManager.GetActiveScene().name == "SolvePuzzleAI_Play")
-            {
-                if (_puzzleManagerScript.BoardAI.StopPlaying)
-                {
-                    _puzzleManagerScript.AfterSolvePuzzle(_playerCameraObject, _playerScript);
-                }
-                return;
-            }
-
             if (_puzzleManagerScript.IsSolving)
             {
                 if (_puzzleManagerScript.CheckPuzzleSolved())
@@ -228,7 +191,7 @@ public class GameManager : MonoBehaviour
     {
         if (_isChangingPositon)
         {
-            ChangePlayerPosition(_positionToChange, _rotationToChange);
+            ChangePlayerPosition(positionToChange, rotationToChange);
             _isChangingPositon = false;
         }
     }
@@ -246,8 +209,8 @@ public class GameManager : MonoBehaviour
 
         if (_currentMapActions[0].gameStateInfo.hasNewPosition)
         {
-            _positionToChange = _currentMapActions[0].gameStateInfo.position;
-            _rotationToChange = _currentMapActions[0].gameStateInfo.rotation;
+            positionToChange = _currentMapActions[0].gameStateInfo.position;
+            rotationToChange = _currentMapActions[0].gameStateInfo.rotation;
             _isChangingPositon = true;
         }
 
@@ -256,7 +219,7 @@ public class GameManager : MonoBehaviour
         {
             // mostra a cutscene externa e trata do colisor no script LevelChanger
             case GameState.INTRO_GAME:
-                StartCoroutine(OpenInitialCutscene(nextGameState));
+                ConfigVideoCutscene(nextGameState);
                 break;
 
             // abre o baú e no fim mostra a cutscene final
@@ -282,7 +245,7 @@ public class GameManager : MonoBehaviour
             // permite que o jogador comece a resolver o puzzle
             case GameState.SOLVE_PUZZLE:
                 _puzzleManagerScript = _puzzleManagerObject.GetComponent<PuzzleManager>();
-                _puzzleManagerScript.BeforeSolvePuzzle(_playerCameraObject);
+                _puzzleManagerScript.BeforeSolvePuzzle(_playerCameraObject, _playerScript);
                 break;
 
             default:
@@ -379,45 +342,26 @@ public class GameManager : MonoBehaviour
 
     private void OnVideoCutsceneStart(VideoPlayer videoPlayer)
     {
-        GameObject playerPrefab = GameObject.FindGameObjectWithTag("PlayerPrefab");
-        if (playerPrefab != null)
-        {
-            PlayerAnimations playerAnimations = playerPrefab.GetComponent<PlayerAnimations>();
-            playerAnimations.WalkingSound.Pause();
-        }
-
         if (_backgroundAaudioSource != null && _backgroundAaudioSource.isPlaying)
         {
             _backgroundAaudioSource.Pause();
         }
 
-        // bloquear falas da ação do F ou do objetivo
-        if (_currentActionDialogue != null) _currentActionDialogue.Stop();
-        if (_currentGoalDialogue != null) _currentGoalDialogue.Stop();
-        CancelInvoke(nameof(ShowAndHideGoalLoop));
-
         Time.timeScale = 0f;
 
-        _mainCanvas.enabled = false;
+        _canvas.enabled = false;
         videoPlayer.enabled = true;
         videoPlayer.Play();
     }
 
     private void OnVideoCutsceneEnd(VideoPlayer videoPlayer, GameState nextGameState)
     {
-        GameObject playerPrefab = GameObject.FindGameObjectWithTag("PlayerPrefab");
-        if (playerPrefab != null)
-        {
-            PlayerAnimations playerAnimations = playerPrefab.GetComponent<PlayerAnimations>();
-            playerAnimations.WalkingSound.UnPause();
-        }
-
         if (_backgroundAaudioSource != null && !_backgroundAaudioSource.isPlaying)
         {
             _backgroundAaudioSource.UnPause();
         }
 
-        _mainCanvas.enabled = true;
+        _canvas.enabled = true;
         videoPlayer.enabled = false;
 
         Time.timeScale = 1f;
@@ -425,14 +369,11 @@ public class GameManager : MonoBehaviour
         if (_currentMapActions[0].gameStateInfo.hasNewPosition)
         {
             int lastGameStateInfoIndex = GetLastGameStateInfoIndex();
-            _positionToChange = _gameStateList[lastGameStateInfoIndex].position;
-            _rotationToChange = _gameStateList[lastGameStateInfoIndex].rotation;
+            positionToChange = _gameStateList[lastGameStateInfoIndex].position;
+            rotationToChange = _gameStateList[lastGameStateInfoIndex].rotation;
 
             _isChangingPositon = true;
         }
-
-        // ativar novamente a fala do objetivo durante o jogo
-        InvokeRepeating(nameof(ShowAndHideGoalLoop), 4f, 40f);
 
         if (_currentGameState.Value == GameState.FINISH_GAME)
         {
@@ -448,66 +389,34 @@ public class GameManager : MonoBehaviour
     {
         _player.SetActive(false);
 
-        GameObject playerPrefab = GameObject.FindGameObjectWithTag("PlayerPrefab");
-        if (playerPrefab != null)
-        {
-            PlayerAnimations playerAnimations = playerPrefab.GetComponent<PlayerAnimations>();
-            playerAnimations.WalkingSound.Pause();
-        }
-
         if (_backgroundAaudioSource != null && _backgroundAaudioSource.isPlaying)
         {
             _backgroundAaudioSource.Pause();
         }
 
-        // bloquear falas da ação do F ou do objetivo
-        if (_currentActionDialogue != null) _currentActionDialogue.Stop();
-        if (_currentGoalDialogue != null) _currentGoalDialogue.Stop();
-        CancelInvoke(nameof(ShowAndHideGoalLoop));
-
-        _mainCanvas.enabled = false;
+        _canvas.enabled = false;
 
         timelineObject.SetActive(true);
-
         timeline.Play();
     }
 
     private void OnTimelineCutsceneEnd(PlayableDirector timeline, GameObject timelineObject, GameState nextGameState)
     {
-        GameObject playerPrefab = GameObject.FindGameObjectWithTag("PlayerPrefab");
-        if (playerPrefab != null)
-        {
-            PlayerAnimations playerAnimations = playerPrefab.GetComponent<PlayerAnimations>();
-            playerAnimations.WalkingSound.UnPause();
-        }
-
         if (_backgroundAaudioSource != null && !_backgroundAaudioSource.isPlaying)
         {
             _backgroundAaudioSource.UnPause();
         }
 
-        _mainCanvas.enabled = true;
+        _canvas.enabled = true;
         timelineObject.SetActive(false);
 
         if (_currentMapActions[0].gameStateInfo.hasNewPosition)
         {
             int lastGameStateInfoIndex = GetLastGameStateInfoIndex();
-            _positionToChange = _gameStateList[lastGameStateInfoIndex].position;
-            _rotationToChange = _gameStateList[lastGameStateInfoIndex].rotation;
+            positionToChange = _gameStateList[lastGameStateInfoIndex].position;
+            rotationToChange = _gameStateList[lastGameStateInfoIndex].rotation;
 
             _isChangingPositon = true;
-        }
-
-        // ativar novamente a fala do objetivo durante o jogo
-        InvokeRepeating(nameof(ShowAndHideGoalLoop), 4f, 40f);
-
-        if (CurrentGameState.Value == GameState.INTRO_CAMP)
-        {
-            // não permite que os inimigos venham ter connosco durante a cutscene
-            if (_colliderInFrontOfCampCutscene != null)
-            {
-                Destroy(_colliderInFrontOfCampCutscene.gameObject);
-            }
         }
 
         ChangeGameState(nextGameState);
@@ -524,12 +433,6 @@ public class GameManager : MonoBehaviour
     {
         _player.transform.localPosition = positon;
         _player.transform.localRotation = Quaternion.Euler(rotation);
-    }
-
-    private IEnumerator OpenInitialCutscene(GameState nextGameState)
-    {
-        yield return new WaitForSeconds(1f);
-        ConfigVideoCutscene(nextGameState);
     }
 
     /*
@@ -586,10 +489,6 @@ public class GameManager : MonoBehaviour
         _currentActionTextMeshPro.text = text;
         _currentActionPanel.SetActive(true);
 
-        GameObject playerPrefab = GameObject.FindGameObjectWithTag("PlayerPrefab");
-        PlayerAnimations playerAnimations = playerPrefab.GetComponent<PlayerAnimations>();
-        playerAnimations.WalkingSound.Pause();
-
         yield return new WaitForSeconds(dialogueDuration + 1f);
 
         _currentActionDialogue = null;
@@ -600,8 +499,16 @@ public class GameManager : MonoBehaviour
         UnFreezePlayer();
 
         _currentActionPanel.SetActive(false);
+    }
 
-        playerAnimations.WalkingSound.UnPause();
+    private IEnumerator OpenChestAndStartCutscene(GameState nextGameState)
+    {
+        _treasureChestAnimator.SetBool("isOpen", true);
+        _treasureChestAudioSource.Play();
+
+        yield return new WaitForSeconds(10f);
+
+        ConfigVideoCutscene(nextGameState);
     }
 
     private void ShowAndHideGoalLoop()
@@ -618,52 +525,21 @@ public class GameManager : MonoBehaviour
 
         foreach (MapAction mapAction in _currentMapActions)
         {
-            if (mapAction.hasProgress && mapAction.dialogue != null && (_currentActionDialogue == null))
+            if (mapAction.hasProgress && mapAction.dialogue != null)
             {
                 _currentGoalTextMeshPro.text = mapAction.title;
 
-                _currentGoalDialogue = mapAction.dialogue.GetComponent<AudioSource>();
-                dialogueDuration = _currentGoalDialogue.clip.length;
-                _currentGoalDialogue.Play();
-
-                _currentGoalPanel.SetActive(true);
-
-                break;
+                _currentActionDialogue = mapAction.dialogue.GetComponent<AudioSource>();
+                dialogueDuration = _currentActionDialogue.clip.length;
+                _currentActionDialogue.Play();
             }
         }
 
+        _currentGoalPanel.SetActive(true);
+
         yield return new WaitForSeconds(dialogueDuration + 1f);
 
-        _currentGoalDialogue = null;
-
         _currentGoalPanel.SetActive(false);
-    }
-
-    private IEnumerator OpenChestAndStartCutscene(GameState nextGameState)
-    {
-        _treasureChestAnimator.SetBool("isOpen", true);
-        _treasureChestAudioSource.Play();
-
-        Vector3 initialPosition = _orb.transform.localPosition;
-        Vector3 targetPosition = new Vector3(-129.8151f, -809.9969f, 329.599f);
-
-        float duration = 5f;
-        float elapsedTime = 0f;
-
-        while (elapsedTime < duration)
-        {
-            _orb.transform.localPosition = Vector3.Lerp(initialPosition, targetPosition, elapsedTime / duration);
-
-            elapsedTime += Time.deltaTime;
-
-            yield return null;
-        }
-
-        _orb.transform.localPosition = targetPosition;
-
-        yield return new WaitForSeconds(3f);
-
-        ConfigVideoCutscene(nextGameState);
     }
 
     /*
@@ -691,12 +567,6 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F))
         {
-            // impedir ação se estivar a saltar
-            if (_playerScript.IsJumping)
-            {
-                return;
-            }
-
             foreach (MapAction mapAction in _currentMapActions)
             {
                 if (mapAction.hasClick)
@@ -777,8 +647,7 @@ public class GameManager : MonoBehaviour
     {
         if (!mapAction.hasProgress)
         {
-            // se ação tem diálogo e a fala do objetivo não está a ser falada no momento
-            if (mapAction.hasDialogue && _currentGoalDialogue == null)
+            if (mapAction.hasDialogue)
             {
                 StartCoroutine(ShowAndHideActionLabel(mapAction.title, mapAction.dialogue, mapAction.button));
             }
@@ -790,7 +659,6 @@ public class GameManager : MonoBehaviour
         if (_lastCheckPointPos != null) _player.transform.position = _lastCheckPointPos;
         _playerScript.IsDead = false;
         _playerScript.HealthManager.restoreHealth();
-        _playerScript.SetDeathCollider(false);
         CancelInvoke(nameof(RestartGame));
     }
 
@@ -840,7 +708,6 @@ public class GameManager : MonoBehaviour
 
         PlayerAnimations playerAnimations = playerPrefab.GetComponent<PlayerAnimations>();
         playerAnimations.FreezeAllAnimations = true;
-        playerAnimations.StopAllAnimations();
 
         Animator playerAnimatior = playerPrefab.GetComponent<Animator>();
         playerAnimatior.SetBool(Animations.WALKING, false);

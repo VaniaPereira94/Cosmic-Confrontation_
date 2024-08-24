@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -44,6 +45,8 @@ public class LevelChanger : MonoBehaviour
                     break;
                 case GameState.GO_TO_CAVE:
                     SceneManager.LoadScene("CaveAndPyramid");
+                    //EnableScreen();
+                    //StartCoroutine(LoadLevel());
                     break;
                 case GameState.SOLVE_PUZZLE:
                     gameManager.SetGameState(GameState.INTRO_PYRAMID);
@@ -69,5 +72,36 @@ public class LevelChanger : MonoBehaviour
                     break;
             }
         }
+    }
+
+    private string GetLevelStr()
+    {
+        switch (Level)
+        {
+            case levelList.Forest:
+                return Utils.Environments.FOREST;
+            case levelList.Camp:
+                return Utils.Environments.CAMP;
+            case levelList.Cave:
+                return Utils.SceneNames.CAVE_AND_PYRAMID;
+            case levelList.AfterMaze:
+                return Utils.Environments.AFTER_MAZE;
+            case levelList.Pyramid:
+                return Utils.Environments.PYRAMID;
+            default:
+                return "";
+        }
+    }
+
+    private IEnumerator LoadLevel()
+    {
+        yield return new WaitForSeconds(transitionTime);
+
+        SceneManager.LoadScene(GetLevelStr());
+    }
+
+    private void EnableScreen()
+    {
+        loadScreen.SetActive(true);
     }
 }

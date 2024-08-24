@@ -26,7 +26,7 @@ public class Utils
         public static readonly string SHOOTING = "isShooting";
         public static readonly string JUMPING = "isJumping";
         public static readonly string GRABING = "isGrabing";
-        public static readonly string RUNNING = "isRunning";
+        public static readonly string RUNNING= "isRunning";
 
         public static readonly string HOLE_CLOSING = "HoleClosing";
     }
@@ -53,6 +53,15 @@ public class Utils
     {
         public static readonly string BEACH_AND_FOREST = "BeachAndForest";
         public static readonly string CAVE_AND_PYRAMID = "CaveAndPyramid";
+    }
+
+    public static class EnemyStates
+    {
+        public static readonly string IDLE = "Idle";
+        public static readonly string PATROL = "Patrol";
+        public static readonly string ATTACK_CHASE = "AttackChase";
+        public static readonly string ATTACK_IDLE = "AttackIdle";
+        public static readonly string DEATH = "Death";
     }
 
     public static void PlayAnimation(Animator animator, string animation)
@@ -97,5 +106,14 @@ public class Utils
     public static float GetDistanceBetween2Objects(GameObject object1, GameObject object2)
     {
         return Vector3.Distance(object1.transform.position, object2.transform.position);
+    }
+
+    public static void SetShootingAnimation(Animator animator, float fadeTime, out float shootWeight)
+    {
+        int layerIndex = animator.GetLayerIndex(Utils.Constants.SHOOT);
+        shootWeight = animator.GetLayerWeight(layerIndex) < 0.1f ? 1f : 0f;
+
+        shootWeight = Mathf.Lerp(shootWeight, fadeTime, 0.1f);
+        animator.SetLayerWeight(layerIndex, shootWeight);
     }
 }

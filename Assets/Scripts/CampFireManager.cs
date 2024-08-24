@@ -1,52 +1,44 @@
 using UnityEngine;
 
-public class CampFireManager : MonoBehaviour
+public class BonfireController : MonoBehaviour
 {
-    private Transform _player;
+    private AudioSource audioSource;
+    private Transform player;
 
-    private AudioSource _audioSource;
-    public float _maxVolume = 0.45f;
-    public float _minVolume = 0.01f;
-    public float _proximityRadius = 20f;
+    public float maxVolume = 0.6f;
+    public float minVolume = 0.1f;
+    public float proximityRadius = 5f;
+
 
     void Start()
     {
-        _player = Camera.main.transform;
-        _audioSource = GetComponent<AudioSource>();
+        audioSource = GetComponent<AudioSource>();
+        player = Camera.main.transform;
     }
 
     void Update()
     {
-        // para não ouvir o som quando está em pausa
-        if (Time.timeScale == 1)
-        {
-            UpdateVolume();
-        }
-    }
+        float distance = Vector3.Distance(transform.position, player.position);
 
-    private void UpdateVolume()
-    {
-        float distance = Vector3.Distance(transform.position, _player.position);
-
-        float volume = Mathf.Lerp(_minVolume, _maxVolume, 1 - (distance / _proximityRadius));
+        float volume = Mathf.Lerp(minVolume, maxVolume, 1 - (distance / proximityRadius));
         volume = Mathf.Clamp01(volume);
 
-        _audioSource.volume = volume;
+        audioSource.volume = volume;
 
-        if (distance <= _proximityRadius)
+        if (distance <= proximityRadius)
         {
             // se está dentro do range
-            if (!_audioSource.isPlaying)
+            if (!audioSource.isPlaying)
             {
-                _audioSource.Play();
+                audioSource.Play();
             }
         }
         else
         {
             // se está fora do range
-            if (_audioSource.isPlaying)
+            if (audioSource.isPlaying)
             {
-                _audioSource.Stop();
+                audioSource.Stop();
             }
         }
     }
