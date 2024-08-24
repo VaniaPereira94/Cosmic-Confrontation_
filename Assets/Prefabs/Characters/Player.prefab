@@ -1410,8 +1410,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnPoint: {fileID: 5942962270835935343}
-  muzzlePrefab: {fileID: 6047389493889347409, guid: 0b743c7552e39a04aa78412ac829a772, type: 3}
-  laser: {fileID: 4731087545047838889, guid: c3e5e798f771ffc49b11213ce1107c27, type: 3}
+  laser: {fileID: 7309505654454044209, guid: c21c2f48ee7ee6540b0241a68be6b77b, type: 3}
   player: {fileID: 7988532949181745858}
   animator: {fileID: 1285199917556751221}
   speed: 5
@@ -1660,7 +1659,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 8a7d17167563b5c4d9c87756a32ffe8f, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.3
+  m_Volume: 1
   m_Pitch: 0.9
   Loop: 1
   Mute: 0
@@ -2140,7 +2139,6 @@ GameObject:
   m_Component:
   - component: {fileID: 580893504279867956}
   - component: {fileID: 44217085272745075}
-  - component: {fileID: 6522726917585027253}
   m_Layer: 0
   m_Name: Kachujin
   m_TagString: Untagged
@@ -2292,29 +2290,6 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.010423541, y: -0.15104592, z: 0.035427593}
     m_Extent: {x: 0.4098121, y: 1.101679, z: 0.2611751}
   m_DirtyAABB: 0
---- !u!136 &6522726917585027253
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7151395773395680696}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 2
-  m_Radius: 0.18
-  m_Height: 0.16
-  m_Direction: 1
-  m_Center: {x: 0.028194264, y: 1.06, z: 0.77}
 --- !u!1 &7159855338942262554
 GameObject:
   m_ObjectHideFlags: 0
@@ -2772,9 +2747,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb0862e1b5544fc4bb916c43e2eaf995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  walkSpeed: 5
+  walkSpeed: 6
   airMinSpeed: 4
-  runSpeed: 8
+  runSpeed: 0
   speedIncreaseMultiplier: 1.5
   slopeIncreaseMultiplier: 2.5
   groundDrag: 4

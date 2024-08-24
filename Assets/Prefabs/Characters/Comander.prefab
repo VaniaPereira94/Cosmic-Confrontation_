@@ -93,10 +93,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnPoint: {fileID: 5254391175764139412}
-  laser: {fileID: 4731087545047838889, guid: fab4ed3e30e2c52468f06e2236612b7f, type: 3}
+  laser: {fileID: 7309505654454044209, guid: aa790fa9fda51474b80a6e57680118b2, type: 3}
   player: {fileID: 3306696720204751390}
   animator: {fileID: 8090790800034456286}
-  muzzlePrefab: {fileID: 6047389493889347409, guid: 66a078e16c9df4d4ebfabeb1c86bbded, type: 3}
   fireRate: 2
   laserShootSound: {fileID: 0}
 --- !u!1 &4354957965492882244
