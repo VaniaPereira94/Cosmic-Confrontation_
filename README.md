@@ -1,12 +1,30 @@
-# JOGO - Cosmic Confrontation: The Island's Legacy
+<p align="center"><img width="425" src="http://luispereiralabs.com/assets/cosmic-confrontation/page-cover.png" alt="Imagem de Apresentação"></p>
 
-É um jogo de aventura 3D que passa-se em uma ilha perdida num planeta distante, onde o jogador iniciará o jogo com Halley Bennet, personagem principal que parte em uma aventura para encontrar um tesouro escondido antes que os piratas do universo cheguem primeiro, dessa forma para devolver a vida à normalidade do cosmo pelos que foi conquistada pelos piratas.
+## ⚡️ O que é o Cosmic Confrontation?
 
+Um jogo de aventura 3D que passa-se em uma ilha com vários cenários num planeta distante, onde o jogador iniciará o jogo com Halley Bennet, que parte em uma aventura para encontrar um tesouro escondido antes que os piratas do universo cheguem primeiro, dessa forma para devolver a vida à normalidade do cosmo pelos que foi conquistada pelos piratas.
 
----
+Cosmic Confrontation é um jogo desenvolvido em ambiente desktop com Unity.
 
+> Esta não é um jogo oficializado no mercado, foi construida no âmbito académico de forma aumentar as nossas capacidades técnicas e interpessoais.
 
-## 1º Técnica de IA - Path Finding para movimento das aranhas
+## 💡 Pré-Requisitos
+
+Para comerçar a usar o software localmente na sua máquina, basta instalar o [Unity](https://unity.com/pt/download). Foi utilizada a versão ```2022.3.10f1```, caso queira a versão exata pode encontrá-la [aqui](https://unity.com/pt/releases/editor/archive).
+
+## ⚙️ Instalação
+
+Para colocar o projeto a funcionar localmente na sua máquina basta:
+
+1. Clonar o repositório.
+
+2. Abrir o Unity Hub.
+
+3. Instalar a versão do Unity.
+
+4. Abrir o projeto no Unity.
+
+## 🤖 1º Técnica de IA - Path Finding para movimento das aranhas
 
 ###  Navmesh: 
 
@@ -20,21 +38,16 @@ Quando inicia a cena é chamada a função SetRandomTarget() para o movimento da
 
 Na função Update que vai sendo atualizada a cada frame, é feita a verificação através de um if, se a distância restante para a posição alvo é inferior a 0.1 e se for chama a função SetRandomTarget para calcular um novo ponto de destino. Desta forma a aranha irá sempre andar em diferentes direções. 
 
-
 #### Ficheiros utilizados
 
 O código relativo ao **desenvolvimento da técnica** encontra-se em [Assets/Scripts/SpiderAI.cs](Assets/Scripts/SpiderAI.cs).
-
 
 ### Demonstração
 
 Criamos uma pequeno **trailer** para mostrar o funcionamento do pathfinding das aranhas.
 [![Demonstração](https://img.youtube.com/vi/0DWwADyst5Y/0.jpg)](https://www.youtube.com/watch?v=0DWwADyst5Y)
 
----
-
-
-## 2º Técnica de IA - Máquina de Estados para tomada de decisão dos inimigos
+## 🤖 2º Técnica de IA - Máquina de Estados para tomada de decisão dos inimigos
 
 Para este tópico, foi criada uma máquina de estados, que faz a transição entre 5 estados:
 Idle, patrulhar, atacar parado, atacar a caminhar e morrer. Para cada um destes estados foram criadas uma classe para cada estado.
@@ -55,20 +68,19 @@ Scripts utilizados/criados:
 - PatrolEnemy
 - EnemyGroupScript
 
-O código encontra-se no seguinte branch:
-https://github.com/FredSilva92/GamePA/tree/AIStateMachine
+O código encontra-se na branch [ai-state-machine](https://github.com/luispereira1999/cosmic-confrontation/tree/ai-state-machine)
 
 
 ---
 
 
-## 3º Técnica de IA - Aprendizado por Reforço para resolver um puzzle
+## 🤖 3º Técnica de IA - Aprendizado por Reforço para resolver um puzzle
 
 ### Enquadramento
 
 No decorrer do jogo produzido na unidade curricular de Projeto Aplicado, decidimos fazer uma adaptação para uso da técnica de inteligência artificial de aprendizado por reforço na unidade curricular de Inteligência Artificial Aplicada a Jogos.\
 Escolhemos esta técnica, pelo facto de já termos um puzzle no nosso jogo e, a ideia que o jogador treinado com IA através de tentativa-erro para **resolver um puzzle** e aprender consoante o ambiente que está exposto, enquadra-se bem na sua aplicação.\
-Instalou-se o [Python 3.9.13](https://www.python.org/downloads/release/python-3913) para criar um ambiente, e usufruiu-se principalmente da biblioteca [ML-Agents](https://unity.com/products/machine-learning-agents) que permitiu realizar o treinamento e o desenvolvimento dos agentes inteligentes no [Unity](https://unity.com).
+Instalou-se o [Python 3.9.13](https://www.python.org/downloads/release/python-3913) para criar um ambiente, e usufruiu-se principalmente da biblioteca [ML-Agents](https://github.com/Unity-Technologies/ml-agents) que permitiu realizar o treinamento e o desenvolvimento dos agentes inteligentes no [Unity](https://unity.com/pt).
 
 ### Demonstração
 
@@ -133,3 +145,19 @@ tensorboard --logdir results                                        # exibe resu
 ```
 
 Depois do treino acabar, os ficheiros serão armazenados numa pasta chamada `results` na raiz do projeto!
+
+## 👍 Contribuições
+
+As contribuições são o que tornam a comunidade de código aberto um lugar incrível para aprender, inspirar e criar. Quaisquer contribuições que você faça são muito apreciadas.
+
+Se você tiver uma sugestão de melhoria, por favor, faça fork do repositório e crie uma pull request. Ou pode simplesmente abrir um issue. Não se esqueça de dar uma estrela ao projeto! Obrigado mais uma vez!
+
+## ⭐️ Colaboradores
+
+- Luís Pereira
+- Pedro Silva
+- Vânia Pereira
+
+## ⚠️ Licença
+
+Ao contribuir para este projeto, você concorda com as políticas da licença [MIT](LICENSE).
